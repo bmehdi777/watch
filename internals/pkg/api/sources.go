@@ -21,6 +21,8 @@ func NewSourceHandler(db *gorm.DB) *SourceHandler {
 
 func (s *SourceHandler) Routes(r chi.Router) {
 	r.Get("/", s.getMany)
+	r.Post("/", s.create)
+
 	r.Group(func(r chi.Router) {
 		r.Use(s.sourceCtx)
 		r.Get("/{sourceID}", s.getOne)
@@ -59,6 +61,23 @@ func (s *SourceHandler) getOne(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (s *SourceHandler) create(w http.ResponseWriter, r *http.Request) {
+	sourceDTO, err := decodeJSON[models.SourceDTO](r)
+	if err != nil {
+		http.Error(w, http.StatusText(400), 400)
+		return
+	}
+
+	source := models.SourceModel{
+		URL:     sourceDTO.URL,
+		Enabled: sourceDTO.Enabled,
+	}
+
+	s.DB.Create(&source)
+
+	w.WriteHeader(200)
+}
+
 func (s *SourceHandler) update(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	source, ok := ctx.Value("source").(*models.SourceModel)
@@ -69,7 +88,7 @@ func (s *SourceHandler) update(w http.ResponseWriter, r *http.Request) {
 
 	decodedSource, err := decodeJSON[models.SourceDTO](r)
 	if err != nil {
-		http.Error(w, http.StatusText(500), 500)
+		http.Error(w, http.StatusText(400), 400)
 		return
 	}
 
@@ -89,14 +108,13 @@ func (s *SourceHandler) delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tx := s.DB.Delete(&source, 1)
+	tx := s.DB.Delete(&source)
 	if tx.Error != nil {
 		http.Error(w, http.StatusText(500), 500)
 		return
 	}
 
 	w.WriteHeader(200)
-
 }
 
 func (s *SourceHandler) sourceCtx(next http.Handler) http.Handler {
@@ -104,14 +122,14 @@ func (s *SourceHandler) sourceCtx(next http.Handler) http.Handler {
 		sourceID := chi.URLParam(r, "sourceID")
 
 		var source models.SourceModel
-		tx := s.DB.First(&source, sourceID)
+		tx := s.DB.First(&source, "ID = ?", sourceID)
 
 		if tx.Error != nil {
 			http.Error(w, http.StatusText(404), 404)
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "source", source)
+		ctx := context.WithValue(r.Context(), "source", &source)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

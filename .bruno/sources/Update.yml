@@ -1,11 +1,17 @@
 info:
-  name: GET one
+  name: Update
   type: http
-  seq: 1
+  seq: 3
 
 http:
-  method: GET
+  method: PUT
   url: "{{protocol}}://{{host}}:{{port}}/{{version}}/sources/{{sourceID}}"
+  body:
+    type: json
+    data: |-
+      {
+        "enabled": true
+      }
   auth: inherit
 
 runtime:

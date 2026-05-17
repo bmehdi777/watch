@@ -26,8 +26,10 @@ func Run() {
 	healthHandler := NewHealthHandler()
 	sourceHandler := NewSourceHandler(db)
 
-	router.Route("/healthz", healthHandler.Routes)
-	router.Route("/sources", sourceHandler.Routes)
+	router.Route("/v1", func(r chi.Router) {
+		r.Route("/healthz", healthHandler.Routes)
+		r.Route("/sources", sourceHandler.Routes)
+	})
 
 	fmt.Println("Server is running at :3000")
 	http.ListenAndServe(":3000", router)

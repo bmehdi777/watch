@@ -1,0 +1,27 @@
+info:
+  name: Create
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{protocol}}://{{host}}:{{port}}/{{version}}/sources"
+  body:
+    type: json
+    data: |-
+      {
+        "url": "http://this.is.a.test",
+        "enabled": false
+      }
+  auth: inherit
+
+runtime:
+  variables:
+    - name: sourceID
+      value: ""
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

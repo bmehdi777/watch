@@ -1,10 +1,10 @@
 info:
-  name: GET one
+  name: Remove
   type: http
-  seq: 1
+  seq: 4
 
 http:
-  method: GET
+  method: DELETE
   url: "{{protocol}}://{{host}}:{{port}}/{{version}}/sources/{{sourceID}}"
   auth: inherit
 
