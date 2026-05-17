@@ -2,12 +2,14 @@ package models
 
 type SourceModel struct {
 	BaseModel
-	URL      string
-	Enabled  bool
+	Title   string
+	URL     string
+	Enabled bool
 }
 
 type SourceDTO struct {
-	ID string `json:"id"`
-	URL string `json:"url"`
-	Enabled bool `json:"enabled"`
+	Title   string `json:"title"`
+	ID      string `json:"id"`
+	URL     string `json:"url"`
+	Enabled bool   `json:"enabled"`
 }

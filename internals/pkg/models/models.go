@@ -7,9 +7,8 @@ import (
 	"gorm.io/gorm"
 )
 
-
 type BaseModel struct {
-	ID string `gorm:"type:text;primaryKey"`
+	ID        string `gorm:"type:text;primaryKey"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
