@@ -8,8 +8,8 @@ type SourceModel struct {
 }
 
 type SourceDTO struct {
-	Title   string `json:"title"`
 	ID      string `json:"id"`
+	Title   string `json:"title"`
 	URL     string `json:"url"`
 	Enabled bool   `json:"enabled"`
 }
