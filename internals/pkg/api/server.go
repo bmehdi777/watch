@@ -4,19 +4,15 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+	"watch/internals/pkg/models"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 )
 
 func Run() {
-	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
-	if err != nil {
-		panic("Failed to connect to database")
-	}
+	db := models.InitializeDatabase()
 
 	router := chi.NewRouter()
 
@@ -27,7 +23,11 @@ func Run() {
 	router.Use(middleware.Timeout(60 * time.Second))
 	router.Use(render.SetContentType(render.ContentTypeJSON))
 
-	router.With(render.SetContentType(render.ContentTypePlainText)).Get("/healthz", healthzHandler)
+	healthHandler := NewHealthHandler()
+	sourceHandler := NewSourceHandler(db)
+
+	router.Route("/healthz", healthHandler.Routes)
+	router.Route("/sources", sourceHandler.Routes)
 
 	fmt.Println("Server is running at :3000")
 	http.ListenAndServe(":3000", router)

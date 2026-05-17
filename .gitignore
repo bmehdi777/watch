@@ -99,3 +99,8 @@ out
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
 # End of https://www.toptal.com/developers/gitignore/api/node
+
+*.db
+
+!.bruno/environments/localhost.yml
+.bruno/environments/
