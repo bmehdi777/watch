@@ -3,13 +3,15 @@ package models
 type SourceModel struct {
 	BaseModel
 	Title   string
-	URL     string
+	BlogUrl string
+	RSSUrl  string
 	Enabled bool
 }
 
 type SourceDTO struct {
 	ID      string `json:"id"`
 	Title   string `json:"title"`
-	URL     string `json:"url"`
+	BlogUrl string `json:"blog_url"`
+	RSSUrl  string `json:"rss_url"`
 	Enabled bool   `json:"enabled"`
 }

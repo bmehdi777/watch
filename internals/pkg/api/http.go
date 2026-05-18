@@ -1,19 +1,21 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
-	"watch/internals/pkg/models"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
+	"gorm.io/gorm"
 )
 
-func Run() {
-	db := models.InitializeDatabase()
-
+func Run(ctx context.Context, db *gorm.DB) {
 	router := chi.NewRouter()
 
 	router.Use(middleware.RequestID)
@@ -25,12 +27,34 @@ func Run() {
 
 	healthHandler := NewHealthHandler()
 	sourceHandler := NewSourceHandler(db)
+	articleHandler := NewArticleHandler(db)
 
 	router.Route("/v1", func(r chi.Router) {
 		r.Route("/healthz", healthHandler.Routes)
 		r.Route("/sources", sourceHandler.Routes)
+		r.Route("/articles", articleHandler.Routes)
 	})
 
-	fmt.Println("Server is running at :3000")
-	http.ListenAndServe(":3000", router)
+	srv := http.Server{
+		Addr:    ":3000",
+		Handler: router,
+	}
+
+	go func() {
+		// Put a proper logger here
+		fmt.Println("Server is running at :3000")
+		srv.ListenAndServe()
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
+	err := srv.Shutdown(ctx)
+	if err != nil {
+		fmt.Println("Shutdown error : ", err)
+	}
 }

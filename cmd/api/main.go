@@ -1,7 +1,9 @@
 package main
 
-import "watch/internals/pkg/api"
+import (
+	"watch/internals/pkg/server"
+)
 
 func main() {
-	api.Run()
+	server.Run()
 }
