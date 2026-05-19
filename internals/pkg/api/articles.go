@@ -20,8 +20,9 @@ func NewArticleHandler(db *gorm.DB) *ArticleHandler {
 }
 
 func (a *ArticleHandler) Routes(r chi.Router) {
-	r.Get("/", a.getMany)
+	// Testing purpose only
 	// r.Post("/", a.create)
+	r.Get("/", a.getMany)
 	r.Group(func(r chi.Router) {
 		r.Use(a.articleCtx)
 		r.Get("/{articleID}", a.getOne)
@@ -40,10 +41,11 @@ func (a *ArticleHandler) getMany(w http.ResponseWriter, r *http.Request) {
 
 	for i, articleModel := range articles {
 		articlesLight[i] = models.ArticleLightDTO{
-			ID:    articleModel.ID,
-			Title: articleModel.Title,
-			Link:  articleModel.Link,
-			Liked: articleModel.Liked,
+			ID:            articleModel.ID,
+			Title:         articleModel.Title,
+			Link:          articleModel.Link,
+			PublishedDate: articleModel.PublishedDate,
+			Liked:         articleModel.Liked,
 		}
 	}
 

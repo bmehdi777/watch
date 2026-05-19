@@ -2,7 +2,7 @@ package api
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -28,11 +28,13 @@ func Run(ctx context.Context, db *gorm.DB) {
 	healthHandler := NewHealthHandler()
 	sourceHandler := NewSourceHandler(db)
 	articleHandler := NewArticleHandler(db)
+	crawlerHandler := NewCrawlerHandler(db)
 
 	router.Route("/v1", func(r chi.Router) {
 		r.Route("/healthz", healthHandler.Routes)
 		r.Route("/sources", sourceHandler.Routes)
 		r.Route("/articles", articleHandler.Routes)
+		r.Route("/crawler", crawlerHandler.Routes)
 	})
 
 	srv := http.Server{
@@ -41,8 +43,7 @@ func Run(ctx context.Context, db *gorm.DB) {
 	}
 
 	go func() {
-		// Put a proper logger here
-		fmt.Println("Server is running at :3000")
+		log.Println("Server is running at :3000")
 		srv.ListenAndServe()
 	}()
 
@@ -55,6 +56,6 @@ func Run(ctx context.Context, db *gorm.DB) {
 
 	err := srv.Shutdown(ctx)
 	if err != nil {
-		fmt.Println("Shutdown error : ", err)
+		log.Fatalln("Shutdown error : ", err)
 	}
 }

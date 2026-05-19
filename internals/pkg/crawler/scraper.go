@@ -1,3 +1,0 @@
-package crawler
-
-func scrap() {}

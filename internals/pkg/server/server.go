@@ -11,6 +11,6 @@ func Run() {
 	db := models.InitializeDatabase()
 	background := context.Background()
 
-	api.Run(background, db)
+	go api.Run(background, db)
 	crawler.Run(background, db)
 }

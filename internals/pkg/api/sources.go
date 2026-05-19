@@ -69,6 +69,7 @@ func (s *SourceHandler) create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	source := models.SourceModel{
+		Title: sourceDTO.Title,
 		BlogUrl: sourceDTO.BlogUrl,
 		RSSUrl:  sourceDTO.RSSUrl,
 		Enabled: sourceDTO.Enabled,

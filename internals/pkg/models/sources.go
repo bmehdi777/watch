@@ -8,6 +8,10 @@ type SourceModel struct {
 	Enabled bool
 }
 
+func (SourceModel) TableName() string {
+	return "sources"
+}
+
 type SourceDTO struct {
 	ID      string `json:"id"`
 	Title   string `json:"title"`

@@ -10,8 +10,10 @@ http:
     type: json
     data: |-
       {
-        "url": "http://this.is.a.test",
-        "enabled": false
+        "title": "Cloudflare Blog",
+        "blog_url": "https://blog.cloudflare.com/",
+        "rss_url": "https://blog.cloudflare.com/rss",
+        "enabled": true
       }
   auth: inherit
 
