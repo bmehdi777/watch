@@ -2,7 +2,6 @@ import { Link, Outlet, useLocation } from "react-router";
 import {
   Breadcrumb,
   BreadcrumbItem,
-  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
 } from "@/components/ui/breadcrumb";
@@ -19,7 +18,10 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 
-const sidebarBodyItems = [{ label: "News", path: "/" }];
+const sidebarBodyItems = [
+  { label: "Sources", path: "/sources" },
+  { label: "Articles", path: "/" },
+];
 const sidebarFooterItems = [{ label: "Settings", path: "/settings" }];
 
 const Layout = () => {
@@ -68,13 +70,7 @@ const Layout = () => {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
-                  {currentItem ? (
-                    <BreadcrumbPage>{currentItem.label}</BreadcrumbPage>
-                  ) : (
-                    <BreadcrumbLink render={<Link to="/" />}>
-                      News
-                    </BreadcrumbLink>
-                  )}
+                  <BreadcrumbPage>{currentItem?.label ?? "News"}</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
