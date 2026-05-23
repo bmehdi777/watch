@@ -23,6 +23,7 @@ func (a *ArticleHandler) Routes(r chi.Router) {
 	// Testing purpose only
 	// r.Post("/", a.create)
 	r.Get("/", a.getMany)
+	r.Post("/search", a.search)
 	r.Group(func(r chi.Router) {
 		r.Use(a.articleCtx)
 		r.Get("/{articleID}", a.getOne)
@@ -31,7 +32,7 @@ func (a *ArticleHandler) Routes(r chi.Router) {
 
 func (a *ArticleHandler) getMany(w http.ResponseWriter, r *http.Request) {
 	var articles []models.ArticleModel
-	tx := a.DB.Find(&articles)
+	tx := a.DB.Order("date(published_date) DESC").Find(&articles)
 	if tx.Error != nil {
 		http.Error(w, http.StatusText(500), 500)
 		return
@@ -50,6 +51,46 @@ func (a *ArticleHandler) getMany(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err := encodeJSON(w, r, http.StatusOK, &articlesLight)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+}
+
+func (a *ArticleHandler) search(w http.ResponseWriter, r *http.Request) {
+	searchDTO, err := decodeJSON[models.ArticleLightDTO](r)
+	if err != nil {
+		http.Error(w, http.StatusText(400), 400)
+		return
+	}
+
+	var articles []models.ArticleModel
+	db := a.DB.Model(&models.ArticleModel{})
+	if searchDTO.Title != "" {
+		db = db.Where("title LIKE ?", "%"+searchDTO.Title+"%")
+	}
+	if searchDTO.Liked {
+		db = db.Where("liked = 1")
+	}
+ 
+	tx := db.Find(&articles)
+	if tx.Error != nil {
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
+
+	articlesLight := make([]models.ArticleLightDTO, len(articles))
+
+	for i, articleModel := range articles {
+		articlesLight[i] = models.ArticleLightDTO{
+			ID:            articleModel.ID,
+			Title:         articleModel.Title,
+			Link:          articleModel.Link,
+			PublishedDate: articleModel.PublishedDate,
+			Liked:         articleModel.Liked,
+		}
+	}
+
+	err = encodeJSON(w, r, http.StatusOK, &articlesLight)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 	}

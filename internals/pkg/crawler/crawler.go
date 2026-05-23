@@ -10,7 +10,7 @@ import (
 )
 
 func scrap(db *gorm.DB) {
-	log.Println("Scrapping RSS...")
+	log.Println("Begining scrapping RSS...")
 	var sources []models.SourceModel
 
 	tx := db.Find(&sources, "enabled = ?", 1)
@@ -43,6 +43,8 @@ func scrap(db *gorm.DB) {
 			}
 		}
 	}
+
+	log.Println("Ending scrapping rss")
 }
 
 func fetchSource(srcUrl string) ([]byte, error) {

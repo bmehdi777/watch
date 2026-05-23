@@ -10,9 +10,9 @@ http:
     type: json
     data: |-
       {
-        "title": "Cloudflare Blog",
-        "blog_url": "https://blog.cloudflare.com/",
-        "rss_url": "https://blog.cloudflare.com/rss",
+        "title": "Netflix Blog",
+        "blog_url": "https://netflixtechblog.com/",
+        "rss_url": "https://netflixtechblog.com/feed",
         "enabled": true
       }
   auth: inherit

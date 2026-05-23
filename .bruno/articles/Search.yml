@@ -1,0 +1,21 @@
+info:
+  name: Search
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{protocol}}://{{host}}:{{port}}/{{version}}/articles/search"
+  body:
+    type: json
+    data: |-
+      {
+        "liked": false
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -5,7 +5,11 @@ info:
 
 http:
   method: GET
-  url: "{{protocol}}://{{host}}:{{port}}/{{version}}/articles"
+  url: "{{protocol}}://{{host}}:{{port}}/{{version}}/articles?sort=asc"
+  params:
+    - name: sort
+      value: asc
+      type: query
   auth: inherit
 
 settings:
