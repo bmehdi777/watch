@@ -13,7 +13,7 @@ type AIHandler struct {
 	DB *gorm.DB
 }
 
-func NewAiHandler(db *gorm.DB) *AIHandler {
+func NewAIHandler(db *gorm.DB) *AIHandler {
 	return &AIHandler{
 		DB: db,
 	}

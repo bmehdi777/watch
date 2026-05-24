@@ -14,6 +14,7 @@ func InitializeDatabase() *gorm.DB {
 	db.AutoMigrate(&SourceModel{})
 	db.AutoMigrate(&ArticleModel{})
 	db.AutoMigrate(&AIModel{})
+	db.AutoMigrate(&LogModel{})
 
 	return db
 }
