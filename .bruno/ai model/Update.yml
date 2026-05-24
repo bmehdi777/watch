@@ -1,0 +1,26 @@
+info:
+  name: Update
+  type: http
+  seq: 3
+
+http:
+  method: PUT
+  url: "{{protocol}}://{{host}}:{{port}}/api/{{version}}/models/{{aiModelID}}"
+  body:
+    type: json
+    data: |-
+      {
+        "enabled":true
+      }
+  auth: inherit
+
+runtime:
+  variables:
+    - name: aiModelID
+      value: 84d3e52f-5a42-4f4c-9d1b-3f039b2f699a
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

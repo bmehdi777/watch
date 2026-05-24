@@ -2,7 +2,9 @@ package api
 
 import (
 	"context"
+	"log"
 	"net/http"
+	"watch/internals/pkg/ai"
 	"watch/internals/pkg/models"
 
 	"github.com/go-chi/chi/v5"
@@ -107,7 +109,21 @@ func (a *ArticleHandler) getOne(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := encodeJSON(w, r, http.StatusOK, &article)
+	articleDTO := models.ArticleDTO{
+		ArticleLightDTO: models.ArticleLightDTO{
+			ID:            article.ID,
+			Title:         article.Title,
+			Link:          article.Link,
+			PublishedDate: article.PublishedDate,
+			Liked:         article.Liked,
+			ReadLater:     article.ReadLater,
+			TldrGenerated: article.TldrGenerated,
+		},
+		Content: article.Description,
+		Tldr:    article.Tldr,
+	}
+
+	err := encodeJSON(w, r, http.StatusOK, &articleDTO)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -115,6 +131,12 @@ func (a *ArticleHandler) getOne(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *ArticleHandler) generateTldr(w http.ResponseWriter, r *http.Request) {
+	tldrDTO, err := decodeJSON[models.TldrDTO](r)
+	if err != nil {
+		http.Error(w, http.StatusText(400), 400)
+		return
+	}
+
 	ctx := r.Context()
 	article, ok := ctx.Value("article").(*models.ArticleModel)
 	if !ok {
@@ -122,7 +144,42 @@ func (a *ArticleHandler) generateTldr(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	
+	if article.TldrGenerated && !tldrDTO.Force {
+		w.WriteHeader(200)
+		return
+	}
+
+	var currentAiModel models.AIModel
+	tx := a.DB.First(&currentAiModel, "enabled = 1")
+	if tx.Error != nil {
+		http.Error(w, "Unable to get current AI model", 500)
+		return
+	}
+
+	// not sure about this
+	if &currentAiModel == nil {
+		http.Error(w, "No AI model activated", 400)
+	}
+
+	go func() {
+		background := context.Background()
+		tldr, err := ai.GenerateTLDR(background, currentAiModel.Name, currentAiModel.PrefixRequest, article.Description)
+		if err != nil {
+			log.Println("An error occured while generating TLDR : ", err)
+			return
+		}
+
+		article.TldrGenerated = true
+		article.Tldr = tldr
+
+		tx = a.DB.Save(&article)
+		if tx.Error != nil {
+			log.Println("Unable to save TLDR : ", tx.Error)
+			return
+		}
+	}()
+
+	w.WriteHeader(200)
 }
 
 func (a *ArticleHandler) articleCtx(next http.Handler) http.Handler {
@@ -131,7 +188,6 @@ func (a *ArticleHandler) articleCtx(next http.Handler) http.Handler {
 
 		var article models.ArticleModel
 		tx := a.DB.First(&article, "ID = ?", articleID)
-
 		if tx.Error != nil {
 			http.Error(w, http.StatusText(404), 404)
 			return

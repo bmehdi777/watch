@@ -29,12 +29,14 @@ func Run(ctx context.Context, db *gorm.DB) {
 	sourceHandler := NewSourceHandler(db)
 	articleHandler := NewArticleHandler(db)
 	crawlerHandler := NewCrawlerHandler(db)
+	aiHandler := NewAiHandler(db)
 
 	router.Route("/api/v1", func(r chi.Router) {
 		r.Route("/healthz", healthHandler.Routes)
 		r.Route("/sources", sourceHandler.Routes)
 		r.Route("/articles", articleHandler.Routes)
 		r.Route("/crawler", crawlerHandler.Routes)
+		r.Route("/models", aiHandler.Routes)
 	})
 
 	srv := http.Server{

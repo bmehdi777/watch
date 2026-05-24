@@ -5,14 +5,14 @@ info:
 
 http:
   method: POST
-  url: "{{protocol}}://{{host}}:{{port}}/api/{{version}}/sources"
+  url: 1e72e3e7-578c-4b26-bead-f015f95be2b0{{protocol}}://{{host}}:{{port}}/api/{{version}}/sources
   body:
     type: json
     data: |-
       {
-        "title": "Netflix Blog",
-        "blog_url": "https://netflixtechblog.com/",
-        "rss_url": "https://netflixtechblog.com/feed",
+        "title": "Slack Blog",
+        "blog_url": "https://slack.engineering/",
+        "rss_url": "https://slack.engineering/feed/",
         "enabled": true
       }
   auth: inherit
