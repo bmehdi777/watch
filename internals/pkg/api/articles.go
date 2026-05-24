@@ -27,6 +27,7 @@ func (a *ArticleHandler) Routes(r chi.Router) {
 	r.Group(func(r chi.Router) {
 		r.Use(a.articleCtx)
 		r.Get("/{articleID}", a.getOne)
+		r.Post("/{articleID}/tldr", a.generateTldr)
 	})
 }
 
@@ -47,6 +48,7 @@ func (a *ArticleHandler) getMany(w http.ResponseWriter, r *http.Request) {
 			Link:          articleModel.Link,
 			PublishedDate: articleModel.PublishedDate,
 			Liked:         articleModel.Liked,
+			ReadLater:     articleModel.ReadLater,
 		}
 	}
 
@@ -71,7 +73,7 @@ func (a *ArticleHandler) search(w http.ResponseWriter, r *http.Request) {
 	if searchDTO.Liked {
 		db = db.Where("liked = 1")
 	}
- 
+
 	tx := db.Find(&articles)
 	if tx.Error != nil {
 		http.Error(w, http.StatusText(500), 500)
@@ -87,6 +89,7 @@ func (a *ArticleHandler) search(w http.ResponseWriter, r *http.Request) {
 			Link:          articleModel.Link,
 			PublishedDate: articleModel.PublishedDate,
 			Liked:         articleModel.Liked,
+			ReadLater:     articleModel.ReadLater,
 		}
 	}
 
@@ -111,6 +114,34 @@ func (a *ArticleHandler) getOne(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (a *ArticleHandler) generateTldr(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	article, ok := ctx.Value("article").(*models.ArticleModel)
+	if !ok {
+		http.Error(w, http.StatusText(422), 422)
+		return
+	}
+
+	
+}
+
+func (a *ArticleHandler) articleCtx(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		articleID := chi.URLParam(r, "articleID")
+
+		var article models.ArticleModel
+		tx := a.DB.First(&article, "ID = ?", articleID)
+
+		if tx.Error != nil {
+			http.Error(w, http.StatusText(404), 404)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "article", &article)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
 // Debug purpose only
 // func (a *ArticleHandler) create(w http.ResponseWriter, r *http.Request) {
 // 	articleDTO, err := decodeJSON[models.ArticleDTO](r)
@@ -131,20 +162,3 @@ func (a *ArticleHandler) getOne(w http.ResponseWriter, r *http.Request) {
 //
 // 	w.WriteHeader(200)
 // }
-
-func (a *ArticleHandler) articleCtx(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		articleID := chi.URLParam(r, "articleID")
-
-		var article models.ArticleModel
-		tx := a.DB.First(&article, "ID = ?", articleID)
-
-		if tx.Error != nil {
-			http.Error(w, http.StatusText(404), 404)
-			return
-		}
-
-		ctx := context.WithValue(r.Context(), "article", &article)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}

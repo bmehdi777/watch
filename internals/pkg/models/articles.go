@@ -7,6 +7,7 @@ type ArticleModel struct {
 	Description   string
 	PublishedDate string
 	Liked         bool
+	ReadLater     bool
 	Guid          string
 }
 
@@ -20,6 +21,7 @@ type ArticleLightDTO struct {
 	Link          string `json:"link"`
 	PublishedDate string `json:"published_date"`
 	Liked         bool   `json:"liked"`
+	ReadLater     bool   `json:"read_later"`
 }
 
 type ArticleDTO struct {

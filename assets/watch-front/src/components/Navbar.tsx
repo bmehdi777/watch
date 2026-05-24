@@ -1,10 +1,13 @@
-import { Link, Outlet, useLocation } from "react-router";
+import { Link, Outlet, useLocation, useParams } from "react-router";
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
+  BreadcrumbLink,
   BreadcrumbPage,
+  BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { MOCK_ARTICLES } from "@/mocks/articles";
 import {
   Sidebar,
   SidebarContent,
@@ -17,7 +20,7 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { Binoculars, Newspaper, Rss, Search, Settings } from "lucide-react";
+import { Binoculars, Newspaper, Rss, Search, Settings, Heart, Clock } from "lucide-react";
 import Command from "@/components/Command";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { useState } from "react";
@@ -25,17 +28,43 @@ import { useState } from "react";
 const sidebarBodyItems = [
   { label: "Sources", path: "/sources", icon: <Rss /> },
   { label: "Articles", path: "/articles", icon: <Newspaper /> },
+  { label: "Liked", path: "/liked", icon: <Heart /> },
+  { label: "Read later", path: "/read-later", icon: <Clock /> },
 ];
 
 const sidebarFooterItems = [
   { label: "Settings", path: "/settings", icon: <Settings /> },
 ];
 
+const ArticleBreadcrumb = () => {
+  const { id } = useParams<{ id: string }>();
+  const article = MOCK_ARTICLES.find((a) => a.id === id);
+
+  return (
+    <Breadcrumb>
+      <BreadcrumbList>
+        <BreadcrumbItem>
+          <BreadcrumbLink render={<Link to="/articles" />} className="flex items-center gap-1">
+            Articles
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbSeparator />
+        <BreadcrumbItem>
+          <BreadcrumbPage className="line-clamp-1 max-w-64">
+            {article?.title ?? "Article"}
+          </BreadcrumbPage>
+        </BreadcrumbItem>
+      </BreadcrumbList>
+    </Breadcrumb>
+  );
+};
+
 const Navbar = () => {
   const { pathname } = useLocation();
 
   const allItems = [...sidebarBodyItems, ...sidebarFooterItems];
   const currentItem = allItems.find((item) => item.path === pathname);
+  const isArticleDetail = /^\/articles\/.+/.test(pathname);
   const [searchOpen, setSearchOpen] = useState(false);
 
   return (
@@ -68,6 +97,7 @@ const Navbar = () => {
             </SidebarMenu>
           </SidebarGroup>
         </SidebarContent>
+
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem>
@@ -103,15 +133,19 @@ const Navbar = () => {
         <div className="p-4">
           <div className="mb-4 flex items-center gap-3">
             <SidebarTrigger />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbPage>
-                    {currentItem?.label ?? "News"}
-                  </BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
+            {isArticleDetail ? (
+              <ArticleBreadcrumb />
+            ) : (
+              <Breadcrumb>
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>
+                      {currentItem?.label ?? "News"}
+                    </BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
+            )}
           </div>
           <Outlet />
         </div>

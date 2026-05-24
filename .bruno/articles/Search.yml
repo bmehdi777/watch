@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: "{{protocol}}://{{host}}:{{port}}/{{version}}/articles/search"
+  url: "{{protocol}}://{{host}}:{{port}}/api/{{version}}/articles/search"
   body:
     type: json
     data: |-

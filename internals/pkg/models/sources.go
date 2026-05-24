@@ -5,6 +5,7 @@ type SourceModel struct {
 	Title   string
 	BlogUrl string
 	RSSUrl  string
+	Image   string
 	Enabled bool
 }
 
@@ -17,5 +18,6 @@ type SourceDTO struct {
 	Title   string `json:"title"`
 	BlogUrl string `json:"blog_url"`
 	RSSUrl  string `json:"rss_url"`
+	Image   string `json:"image"`
 	Enabled bool   `json:"enabled"`
 }

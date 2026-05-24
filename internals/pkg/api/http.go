@@ -30,7 +30,7 @@ func Run(ctx context.Context, db *gorm.DB) {
 	articleHandler := NewArticleHandler(db)
 	crawlerHandler := NewCrawlerHandler(db)
 
-	router.Route("/v1", func(r chi.Router) {
+	router.Route("/api/v1", func(r chi.Router) {
 		r.Route("/healthz", healthHandler.Routes)
 		r.Route("/sources", sourceHandler.Routes)
 		r.Route("/articles", articleHandler.Routes)

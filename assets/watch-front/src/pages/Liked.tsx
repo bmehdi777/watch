@@ -2,8 +2,10 @@ import { useState } from "react";
 import { MOCK_ARTICLES, type ArticleState } from "@/mocks/articles";
 import ArticleGrid from "@/components/ArticleGrid";
 
-const Articles = () => {
-  const [articles, setArticles] = useState<ArticleState[]>(MOCK_ARTICLES);
+const Liked = () => {
+  const [articles, setArticles] = useState<ArticleState[]>(
+    MOCK_ARTICLES.filter((a) => a.liked)
+  );
 
   const toggle = (id: string, field: "liked" | "saved") => {
     setArticles((prev) =>
@@ -11,7 +13,13 @@ const Articles = () => {
     );
   };
 
-  return <ArticleGrid articles={articles} onToggle={toggle} />;
+  return (
+    <ArticleGrid
+      articles={articles}
+      onToggle={toggle}
+      emptyMessage="No liked articles yet."
+    />
+  );
 };
 
-export default Articles;
+export default Liked;

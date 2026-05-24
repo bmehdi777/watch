@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: "{{protocol}}://{{host}}:{{port}}/{{version}}/sources"
+  url: "{{protocol}}://{{host}}:{{port}}/api/{{version}}/sources"
   auth: inherit
 
 settings:

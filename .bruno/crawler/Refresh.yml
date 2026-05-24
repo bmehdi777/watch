@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: "{{protocol}}://{{host}}:{{port}}/{{version}}/crawler"
+  url: "{{protocol}}://{{host}}:{{port}}/api/{{version}}/crawler"
   auth: inherit
 
 settings:

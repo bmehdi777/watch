@@ -5,7 +5,7 @@ info:
 
 http:
   method: DELETE
-  url: "{{protocol}}://{{host}}:{{port}}/{{version}}/sources/{{sourceID}}"
+  url: "{{protocol}}://{{host}}:{{port}}/api/{{version}}/sources/{{sourceID}}"
   auth: inherit
 
 runtime:
