@@ -1,19 +1,13 @@
 import { useState } from "react";
-import {
-  useCreateSource,
-  useDeleteSource,
-  useSources,
-  useUpdateSource,
-} from "@/hooks/sources.hook";
 import type { Source, SourcePayload } from "@/services/sources.service";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Search } from "lucide-react";
 
 const EMPTY_FORM: SourcePayload = {
   title: "",
@@ -37,11 +32,23 @@ type DialogState =
   | { mode: "add" }
   | { mode: "edit"; source: Source };
 
+const INITIAL_SOURCES: Source[] = [
+  { id: "1", title: "Hacker News", blog_url: "https://news.ycombinator.com", rss_url: "https://news.ycombinator.com/rss", enabled: true },
+  { id: "2", title: "The Verge", blog_url: "https://theverge.com", rss_url: "https://theverge.com/rss/index.xml", enabled: true },
+  { id: "3", title: "CSS-Tricks", blog_url: "https://css-tricks.com", rss_url: "https://css-tricks.com/feed", enabled: false },
+  { id: "4", title: "Smashing Magazine", blog_url: "https://smashingmagazine.com", rss_url: "https://smashingmagazine.com/feed", enabled: true },
+  { id: "5", title: "Dev.to", blog_url: "https://dev.to", rss_url: "https://dev.to/feed", enabled: true },
+  { id: "6", title: "JavaScript Weekly", blog_url: "https://javascriptweekly.com", rss_url: "https://javascriptweekly.com/rss", enabled: false },
+  { id: "7", title: "Go Blog", blog_url: "https://go.dev/blog", rss_url: "https://go.dev/blog/feed.atom", enabled: true },
+];
+
 const SourceFormDialog = ({
   state,
+  onSubmit,
   onClose,
 }: {
   state: DialogState;
+  onSubmit: (form: SourcePayload, id?: string) => void;
   onClose: () => void;
 }) => {
   const isEdit = state.mode === "edit";
@@ -49,25 +56,14 @@ const SourceFormDialog = ({
     isEdit ? state.source : EMPTY_FORM
   );
 
-  const createSource = useCreateSource();
-  const updateSource = useUpdateSource();
-
   const handleChange = (field: keyof SourcePayload, value: string | boolean) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = () => {
-    if (isEdit) {
-      updateSource.mutate(
-        { id: (state as { mode: "edit"; source: Source }).source.id, payload: form },
-        { onSuccess: onClose }
-      );
-    } else {
-      createSource.mutate(form, { onSuccess: onClose });
-    }
+    onSubmit(form, isEdit ? state.source.id : undefined);
+    onClose();
   };
-
-  const isPending = createSource.isPending || updateSource.isPending;
 
   return (
     <DialogContent>
@@ -113,7 +109,7 @@ const SourceFormDialog = ({
         <Button variant="outline" onClick={onClose}>
           Cancel
         </Button>
-        <Button onClick={handleSubmit} disabled={isPending}>
+        <Button onClick={handleSubmit}>
           {isEdit ? "Save" : "Add"}
         </Button>
       </DialogFooter>
@@ -122,69 +118,87 @@ const SourceFormDialog = ({
 };
 
 const Sources = () => {
-  const { data: sources = [], isLoading } = useSources();
-  const deleteSource = useDeleteSource();
+  const [sources, setSources] = useState<Source[]>(INITIAL_SOURCES);
   const [dialog, setDialog] = useState<DialogState>({ mode: "closed" });
+  const [search, setSearch] = useState("");
+
+  const filtered = sources.filter((s) =>
+    s.title.toLowerCase().includes(search.toLowerCase()) ||
+    s.blog_url.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const handleSubmit = (form: SourcePayload, id?: string) => {
+    if (id) {
+      setSources((prev) => prev.map((s) => s.id === id ? { ...s, ...form } : s));
+    } else {
+      setSources((prev) => [...prev, { ...form, id: String(Date.now()) }]);
+    }
+  };
+
+  const handleDelete = (id: string) => {
+    setSources((prev) => prev.filter((s) => s.id !== id));
+  };
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button variant="secondary" onClick={() => setDialog({ mode: "add" })}>Add source</Button>
+    <div className="space-y-6">
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Input
+            className="pl-9"
+            placeholder="Search sources…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <Button onClick={() => setDialog({ mode: "add" })}>Add source</Button>
       </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Title</TableHead>
-            <TableHead>Blog URL</TableHead>
-            <TableHead>RSS URL</TableHead>
-            <TableHead>Enabled</TableHead>
-            <TableHead className="w-[120px]" />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {isLoading ? (
-            <TableRow>
-              <TableCell colSpan={5} className="text-center text-muted-foreground">
-                Loading…
-              </TableCell>
-            </TableRow>
-          ) : sources.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={5} className="text-center text-muted-foreground">
-                No sources yet.
-              </TableCell>
-            </TableRow>
-          ) : (
-            sources.map((source) => (
-              <TableRow key={source.id}>
-                <TableCell>{source.title}</TableCell>
-                <TableCell>{source.blog_url}</TableCell>
-                <TableCell>{source.rss_url}</TableCell>
-                <TableCell>{source.enabled ? "Yes" : "No"}</TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setDialog({ mode: "edit", source })}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      disabled={deleteSource.isPending}
-                      onClick={() => deleteSource.mutate(source.id)}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+
+      {filtered.length === 0 ? (
+        <div className="text-center text-muted-foreground py-12">
+          {search ? "No sources match your search." : "No sources yet."}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filtered.map((source) => (
+            <Card key={source.id}>
+              <CardHeader>
+                <CardTitle>{source.title}</CardTitle>
+                <CardDescription>
+                  {source.enabled ? "Enabled" : "Disabled"}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-1">
+                <p className="text-xs text-muted-foreground truncate">
+                  <span className="font-medium text-foreground">Blog</span>{" "}
+                  {source.blog_url}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  <span className="font-medium text-foreground">RSS</span>{" "}
+                  {source.rss_url}
+                </p>
+              </CardContent>
+              <CardFooter className="gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDialog({ mode: "edit", source })}
+                >
+                  Edit
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => handleDelete(source.id)}
+                >
+                  Delete
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      )}
+
       <Dialog
         open={dialog.mode !== "closed"}
         onOpenChange={(open) => !open && setDialog({ mode: "closed" })}
@@ -192,6 +206,7 @@ const Sources = () => {
         {dialog.mode !== "closed" && (
           <SourceFormDialog
             state={dialog}
+            onSubmit={handleSubmit}
             onClose={() => setDialog({ mode: "closed" })}
           />
         )}
