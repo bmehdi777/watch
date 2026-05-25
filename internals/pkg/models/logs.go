@@ -1,6 +1,10 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type LogModel struct {
 	BaseModel
@@ -55,7 +59,8 @@ func LogWarn(db *gorm.DB, msg string) error {
 }
 
 type LogLightDTO struct {
-	ID      string `json:"id"`
-	Level   string `json:"level"`
-	Message string `json:"message"`
+	ID        string    `json:"id"`
+	Level     string    `json:"level"`
+	Message   string    `json:"message"`
+	CreatedAt time.Time `json:"created_at"`
 }

@@ -1,25 +1,18 @@
-import { useState } from "react";
-import { MOCK_ARTICLES, type ArticleState } from "@/mocks/articles";
+import { useArticleSearch } from "@/hooks/articles.hook";
 import ArticleGrid from "@/components/ArticleGrid";
 
 const Liked = () => {
-  const [articles, setArticles] = useState<ArticleState[]>(
-    MOCK_ARTICLES.filter((a) => a.liked)
-  );
+  const { data = [], isLoading, isError } = useArticleSearch({ liked: true });
 
-  const toggle = (id: string, field: "liked" | "saved") => {
-    setArticles((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, [field]: !a[field] } : a))
-    );
-  };
+  if (isLoading) {
+    return <div className="text-center text-muted-foreground py-16">Loading…</div>;
+  }
 
-  return (
-    <ArticleGrid
-      articles={articles}
-      onToggle={toggle}
-      emptyMessage="No liked articles yet."
-    />
-  );
+  if (isError) {
+    return <div className="text-center text-destructive py-16">Failed to load articles.</div>;
+  }
+
+  return <ArticleGrid articles={data} emptyMessage="No liked articles yet." />;
 };
 
 export default Liked;

@@ -5,6 +5,7 @@ import ArticleDetail from "@/pages/ArticleDetail";
 import Liked from "@/pages/Liked";
 import ReadLater from "@/pages/ReadLater";
 import Sources from "@/pages/Sources";
+import Logs from "@/pages/Logs";
 
 export const router = createBrowserRouter([
   {
@@ -16,6 +17,7 @@ export const router = createBrowserRouter([
       { path: "liked", element: <Liked /> },
       { path: "read-later", element: <ReadLater /> },
       { path: "sources", element: <Sources /> },
+      { path: "logs", element: <Logs /> },
     ],
   },
 ]);

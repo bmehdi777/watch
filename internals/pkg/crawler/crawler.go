@@ -1,6 +1,7 @@
 package crawler
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -63,10 +64,13 @@ func createArticle(db *gorm.DB, item RSSItem) error {
 	article := models.ArticleModel{
 		Title:         item.Title,
 		Link:          item.Link,
+		Content:       item.Content,
 		Description:   item.Description,
 		PublishedDate: item.PublishedDate,
 		Guid:          item.Guid,
 	}
+
+	fmt.Println("content", item.Content)
 
 	tx := db.Where(models.ArticleModel{Guid: item.Guid}).FirstOrCreate(&article)
 	if tx.Error != nil {

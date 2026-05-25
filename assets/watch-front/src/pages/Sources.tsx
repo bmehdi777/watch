@@ -1,6 +1,12 @@
 import { useState } from "react";
 import type { Source, SourcePayload } from "@/services/sources.service";
 import {
+  useSources,
+  useCreateSource,
+  useUpdateSource,
+  useDeleteSource,
+} from "@/hooks/sources.hook";
+import {
   Card,
   CardHeader,
   CardTitle,
@@ -31,16 +37,6 @@ type DialogState =
   | { mode: "closed" }
   | { mode: "add" }
   | { mode: "edit"; source: Source };
-
-const INITIAL_SOURCES: Source[] = [
-  { id: "1", title: "Hacker News", blog_url: "https://news.ycombinator.com", rss_url: "https://news.ycombinator.com/rss", enabled: true },
-  { id: "2", title: "The Verge", blog_url: "https://theverge.com", rss_url: "https://theverge.com/rss/index.xml", enabled: true },
-  { id: "3", title: "CSS-Tricks", blog_url: "https://css-tricks.com", rss_url: "https://css-tricks.com/feed", enabled: false },
-  { id: "4", title: "Smashing Magazine", blog_url: "https://smashingmagazine.com", rss_url: "https://smashingmagazine.com/feed", enabled: true },
-  { id: "5", title: "Dev.to", blog_url: "https://dev.to", rss_url: "https://dev.to/feed", enabled: true },
-  { id: "6", title: "JavaScript Weekly", blog_url: "https://javascriptweekly.com", rss_url: "https://javascriptweekly.com/rss", enabled: false },
-  { id: "7", title: "Go Blog", blog_url: "https://go.dev/blog", rss_url: "https://go.dev/blog/feed.atom", enabled: true },
-];
 
 const SourceFormDialog = ({
   state,
@@ -118,7 +114,11 @@ const SourceFormDialog = ({
 };
 
 const Sources = () => {
-  const [sources, setSources] = useState<Source[]>(INITIAL_SOURCES);
+  const { data: sources = [], isLoading, isError } = useSources();
+  const createSource = useCreateSource();
+  const updateSource = useUpdateSource();
+  const deleteSource = useDeleteSource();
+
   const [dialog, setDialog] = useState<DialogState>({ mode: "closed" });
   const [search, setSearch] = useState("");
 
@@ -129,14 +129,14 @@ const Sources = () => {
 
   const handleSubmit = (form: SourcePayload, id?: string) => {
     if (id) {
-      setSources((prev) => prev.map((s) => s.id === id ? { ...s, ...form } : s));
+      updateSource.mutate({ id, payload: form });
     } else {
-      setSources((prev) => [...prev, { ...form, id: String(Date.now()) }]);
+      createSource.mutate(form);
     }
   };
 
   const handleDelete = (id: string) => {
-    setSources((prev) => prev.filter((s) => s.id !== id));
+    deleteSource.mutate(id);
   };
 
   return (
@@ -154,11 +154,21 @@ const Sources = () => {
         <Button onClick={() => setDialog({ mode: "add" })}>Add source</Button>
       </div>
 
-      {filtered.length === 0 ? (
+      {isLoading && (
+        <div className="text-center text-muted-foreground py-12">Loading…</div>
+      )}
+
+      {isError && (
+        <div className="text-center text-destructive py-12">Failed to load sources.</div>
+      )}
+
+      {!isLoading && !isError && filtered.length === 0 && (
         <div className="text-center text-muted-foreground py-12">
           {search ? "No sources match your search." : "No sources yet."}
         </div>
-      ) : (
+      )}
+
+      {!isLoading && !isError && filtered.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((source) => (
             <Card key={source.id}>

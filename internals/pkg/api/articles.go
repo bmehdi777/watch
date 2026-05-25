@@ -29,6 +29,7 @@ func (a *ArticleHandler) Routes(r chi.Router) {
 	r.Group(func(r chi.Router) {
 		r.Use(a.articleCtx)
 		r.Get("/{articleID}", a.getOne)
+		r.Patch("/{articleID}", a.patch)
 		r.Post("/{articleID}/tldr", a.generateTldr)
 	})
 }
@@ -48,6 +49,7 @@ func (a *ArticleHandler) getMany(w http.ResponseWriter, r *http.Request) {
 			ID:            articleModel.ID,
 			Title:         articleModel.Title,
 			Link:          articleModel.Link,
+			Description:   articleModel.Description,
 			PublishedDate: articleModel.PublishedDate,
 			Liked:         articleModel.Liked,
 			ReadLater:     articleModel.ReadLater,
@@ -89,6 +91,7 @@ func (a *ArticleHandler) search(w http.ResponseWriter, r *http.Request) {
 			ID:            articleModel.ID,
 			Title:         articleModel.Title,
 			Link:          articleModel.Link,
+			Description:   articleModel.Description,
 			PublishedDate: articleModel.PublishedDate,
 			Liked:         articleModel.Liked,
 			ReadLater:     articleModel.ReadLater,
@@ -118,8 +121,9 @@ func (a *ArticleHandler) getOne(w http.ResponseWriter, r *http.Request) {
 			Liked:         article.Liked,
 			ReadLater:     article.ReadLater,
 			TldrGenerated: article.TldrGenerated,
+			Description:   article.Description,
 		},
-		Content: article.Description,
+		Content: article.Content,
 		Tldr:    article.Tldr,
 	}
 
@@ -128,6 +132,42 @@ func (a *ArticleHandler) getOne(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 500)
 		return
 	}
+}
+
+func (a *ArticleHandler) patch(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	article, ok := ctx.Value("article").(*models.ArticleModel)
+	if !ok {
+		http.Error(w, http.StatusText(422), 422)
+		return
+	}
+
+	dto, err := decodeJSON[models.ArticlePatchDTO](r)
+	if err != nil {
+		http.Error(w, http.StatusText(400), 400)
+		return
+	}
+
+	updates := map[string]any{}
+	if dto.Liked != nil {
+		updates["liked"] = *dto.Liked
+	}
+	if dto.ReadLater != nil {
+		updates["read_later"] = *dto.ReadLater
+	}
+
+	if len(updates) == 0 {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	tx := a.DB.Model(article).Updates(updates)
+	if tx.Error != nil {
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (a *ArticleHandler) generateTldr(w http.ResponseWriter, r *http.Request) {

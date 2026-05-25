@@ -35,9 +35,10 @@ func (l *LogsHandler) getMany(w http.ResponseWriter, r *http.Request) {
 
 	for i, logModel := range logModels {
 		logModelsDto[i] = models.LogLightDTO{
-			ID:            logModel.ID,
-			Level: logModel.Level,
-			Message: logModel.Message,
+			ID:        logModel.ID,
+			Level:     logModel.Level,
+			Message:   logModel.Message,
+			CreatedAt: logModel.CreatedAt,
 		}
 	}
 
@@ -59,9 +60,10 @@ func (l *LogsHandler) getOne(w http.ResponseWriter, r *http.Request) {
 	}
 
 	logDto := models.LogLightDTO{
-		ID:      logModel.ID,
-		Level:   logModel.Level,
-		Message: logModel.Message,
+		ID:        logModel.ID,
+		Level:     logModel.Level,
+		Message:   logModel.Message,
+		CreatedAt: logModel.CreatedAt,
 	}
 
 	err := encodeJSON(w, r, http.StatusOK, &logDto)

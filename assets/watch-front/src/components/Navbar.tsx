@@ -7,7 +7,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { MOCK_ARTICLES } from "@/mocks/articles";
+import { useArticle } from "@/hooks/articles.hook";
 import {
   Sidebar,
   SidebarContent,
@@ -20,7 +20,7 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { Binoculars, Newspaper, Rss, Search, Settings, Heart, Clock } from "lucide-react";
+import { Binoculars, Newspaper, Rss, Search, Settings, Heart, Clock, ScrollText } from "lucide-react";
 import Command from "@/components/Command";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { useState } from "react";
@@ -33,12 +33,13 @@ const sidebarBodyItems = [
 ];
 
 const sidebarFooterItems = [
+  { label: "Logs", path: "/logs", icon: <ScrollText /> },
   { label: "Settings", path: "/settings", icon: <Settings /> },
 ];
 
 const ArticleBreadcrumb = () => {
   const { id } = useParams<{ id: string }>();
-  const article = MOCK_ARTICLES.find((a) => a.id === id);
+  const { data: article } = useArticle(id!);
 
   return (
     <Breadcrumb>

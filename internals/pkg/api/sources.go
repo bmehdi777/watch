@@ -39,7 +39,19 @@ func (s *SourceHandler) getMany(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := encodeJSON(w, r, http.StatusOK, &sources)
+	dtos := make([]models.SourceDTO, len(sources))
+	for i, src := range sources {
+		dtos[i] = models.SourceDTO{
+			ID:      src.ID,
+			Title:   src.Title,
+			BlogUrl: src.BlogUrl,
+			RSSUrl:  src.RSSUrl,
+			Image:   src.Image,
+			Enabled: src.Enabled,
+		}
+	}
+
+	err := encodeJSON(w, r, http.StatusOK, dtos)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -54,7 +66,16 @@ func (s *SourceHandler) getOne(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := encodeJSON(w, r, http.StatusOK, &source)
+	dto := models.SourceDTO{
+		ID:      source.ID,
+		Title:   source.Title,
+		BlogUrl: source.BlogUrl,
+		RSSUrl:  source.RSSUrl,
+		Image:   source.Image,
+		Enabled: source.Enabled,
+	}
+
+	err := encodeJSON(w, r, http.StatusOK, dto)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return

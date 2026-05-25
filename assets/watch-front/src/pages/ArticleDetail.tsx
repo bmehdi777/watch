@@ -1,18 +1,35 @@
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router";
-import { MOCK_ARTICLES } from "@/mocks/articles";
+import { toast } from "sonner";
+import { useArticle, useGenerateTldr, usePatchArticle } from "@/hooks/articles.hook";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Heart, Bookmark, Share2, Astroid, X } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, Heart, Bookmark, Share2, Astroid, X, Loader2 } from "lucide-react";
 
 const ArticleDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const found = MOCK_ARTICLES.find((a) => a.id === id);
-
-  const [article, setArticle] = useState(found ?? null);
   const [tldrOpen, setTldrOpen] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
-  if (!article) {
+  const { data: article, isLoading, isError, refetch } = useArticle(id!);
+  const { mutate: patch } = usePatchArticle();
+  const { mutate: generateTldr, isPending: isRequestingTldr } = useGenerateTldr();
+
+  useEffect(() => {
+    if (!generating) return;
+    if (article?.tldr_generated) {
+      setGenerating(false);
+      return;
+    }
+    const timer = setInterval(() => refetch(), 2000);
+    return () => clearInterval(timer);
+  }, [generating, article?.tldr_generated, refetch]);
+
+  if (isLoading) {
+    return <div className="text-center text-muted-foreground py-16">Loading…</div>;
+  }
+
+  if (isError || !article) {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-4 text-muted-foreground">
         <p>Article not found.</p>
@@ -23,9 +40,25 @@ const ArticleDetail = () => {
     );
   }
 
-  const toggle = (field: "liked" | "saved") => {
-    setArticle((prev) => prev && { ...prev, [field]: !prev[field] });
+  const handleTldr = () => {
+    if (tldrOpen) {
+      setTldrOpen(false);
+      return;
+    }
+    setTldrOpen(true);
+    if (!article.tldr_generated) {
+      generateTldr({ id: article.id }, {
+        onSuccess: () => setGenerating(true),
+      });
+    }
   };
+
+  const handleShare = () => {
+    navigator.clipboard.writeText(article.link);
+    toast("Copied!");
+  };
+
+  const isBusy = isRequestingTldr || generating;
 
   return (
     <div className="flex justify-center items-start gap-0">
@@ -39,25 +72,38 @@ const ArticleDetail = () => {
 
         <h1 className="text-2xl font-semibold leading-snug">{article.title}</h1>
 
-        <p className="text-sm text-muted-foreground leading-relaxed">{article.content}</p>
+        <div
+          className="article-content"
+          dangerouslySetInnerHTML={{ __html: article.content }}
+        />
 
         <div className="flex items-center gap-2 pt-2 border-t">
-          <Button variant="ghost" size="icon-sm" onClick={() => toggle("liked")} aria-label="Like">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => patch({ id: article.id, patch: { liked: !article.liked } })}
+            aria-label="Like"
+          >
             <Heart className={article.liked ? "fill-red-500 text-red-500" : ""} />
           </Button>
-          <Button variant="ghost" size="icon-sm" onClick={() => toggle("saved")} aria-label="Save">
-            <Bookmark className={article.saved ? "fill-foreground text-foreground" : ""} />
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => patch({ id: article.id, patch: { read_later: !article.read_later } })}
+            aria-label="Save"
+          >
+            <Bookmark className={article.read_later ? "fill-foreground text-foreground" : ""} />
           </Button>
           <Button
             variant="ghost"
             size="icon-sm"
             aria-label="Generate TLDR"
-            onClick={() => setTldrOpen((o) => !o)}
+            onClick={handleTldr}
             className={tldrOpen ? "text-foreground bg-muted" : ""}
           >
-            <Astroid />
+            {isBusy ? <Loader2 className="animate-spin" /> : <Astroid />}
           </Button>
-          <Button variant="ghost" size="icon-sm" aria-label="Share" className="ml-auto">
+          <Button variant="ghost" size="icon-sm" aria-label="Share" className="ml-auto" onClick={handleShare}>
             <Share2 />
           </Button>
         </div>
@@ -73,7 +119,14 @@ const ArticleDetail = () => {
                 <X />
               </Button>
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">{article.tldr}</p>
+            {isBusy ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="size-4 animate-spin" />
+                <span>Generating…</span>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground leading-relaxed">{article.tldr}</p>
+            )}
           </div>
         </>
       )}
