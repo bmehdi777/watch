@@ -81,13 +81,22 @@ func (a *AIHandler) update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	decodedAIModel, err := decodeJSON[models.AILightDTO](r)
+	dto, err := decodeJSON[models.AIUpdateDTO](r)
 	if err != nil {
 		http.Error(w, http.StatusText(400), 400)
 		return
 	}
 
-	tx := a.DB.Model(&aiModel).Updates(decodedAIModel)
+	updates := map[string]any{
+		"name":           dto.Name,
+		"display_name":   dto.DisplayName,
+		"prefix_request": dto.PrefixRequest,
+	}
+	if dto.Enabled != nil {
+		updates["enabled"] = *dto.Enabled
+	}
+
+	tx := a.DB.Model(&aiModel).Updates(updates)
 	if tx.Error != nil {
 		http.Error(w, http.StatusText(400), 400)
 		return

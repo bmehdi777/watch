@@ -16,14 +16,17 @@ const ArticleDetail = () => {
   const { mutate: generateTldr, isPending: isRequestingTldr } = useGenerateTldr();
 
   useEffect(() => {
-    if (!generating) return;
     if (article?.tldr_generated) {
+      setTldrOpen(true);
       setGenerating(false);
-      return;
     }
+  }, [article?.tldr_generated]);
+
+  useEffect(() => {
+    if (!generating) return;
     const timer = setInterval(() => refetch(), 2000);
     return () => clearInterval(timer);
-  }, [generating, article?.tldr_generated, refetch]);
+  }, [generating, refetch]);
 
   if (isLoading) {
     return <div className="text-center text-muted-foreground py-16">Loading…</div>;
@@ -46,6 +49,7 @@ const ArticleDetail = () => {
       return;
     }
     setTldrOpen(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
     if (!article.tldr_generated) {
       generateTldr({ id: article.id }, {
         onSuccess: () => setGenerating(true),

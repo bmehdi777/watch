@@ -7,14 +7,6 @@ import {
   useDeleteSource,
 } from "@/hooks/sources.hook";
 import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
-import {
   Dialog,
   DialogContent,
   DialogFooter,
@@ -24,7 +16,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Search } from "lucide-react";
+import { Search, Pencil, Trash2, Plus } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const EMPTY_FORM: SourcePayload = {
   title: "",
@@ -54,11 +47,6 @@ const SourceFormDialog = ({
 
   const handleChange = (field: keyof SourcePayload, value: string | boolean) => {
     setForm((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSubmit = () => {
-    onSubmit(form, isEdit ? state.source.id : undefined);
-    onClose();
   };
 
   return (
@@ -97,21 +85,81 @@ const SourceFormDialog = ({
             type="checkbox"
             checked={form.enabled}
             onChange={(e) => handleChange("enabled", e.target.checked)}
+            className="size-4 rounded border-border accent-foreground cursor-pointer"
           />
-          <Label htmlFor="enabled">Enabled</Label>
+          <Label htmlFor="enabled" className="cursor-pointer">Enabled</Label>
         </div>
       </div>
       <DialogFooter>
-        <Button variant="outline" onClick={onClose}>
-          Cancel
-        </Button>
-        <Button onClick={handleSubmit}>
+        <Button variant="outline" onClick={onClose}>Cancel</Button>
+        <Button onClick={() => { onSubmit(form, isEdit ? state.source.id : undefined); onClose(); }}>
           {isEdit ? "Save" : "Add"}
         </Button>
       </DialogFooter>
     </DialogContent>
   );
 };
+
+const SourceRow = ({
+  source,
+  onEdit,
+  onDelete,
+}: {
+  source: Source;
+  onEdit: (source: Source) => void;
+  onDelete: (id: string) => void;
+}) => (
+  <div className="group relative flex items-center gap-4 py-3.5 border-b border-border last:border-0 hover:bg-accent/50 -mx-4 px-4 transition-colors duration-100">
+
+    {/* Enabled indicator */}
+    <div className="relative z-10 w-9 shrink-0 flex justify-center">
+      <span className={cn(
+        "size-2 rounded-full mt-0.5",
+        source.enabled ? "bg-emerald-500" : "bg-border"
+      )} />
+    </div>
+
+    <div className="relative z-10 w-px h-7 bg-border shrink-0" />
+
+    {/* Title + blog URL */}
+    <div className="relative z-10 flex-1 min-w-0">
+      <p className={cn(
+        "text-sm font-medium leading-snug line-clamp-1 transition-colors",
+        "text-foreground group-hover:text-foreground/75",
+      )}>
+        {source.title}
+      </p>
+      <p className="text-xs text-muted-foreground leading-relaxed line-clamp-1 mt-0.5 font-mono">
+        {source.blog_url}
+      </p>
+    </div>
+
+    {/* RSS URL — visible at rest, hidden on hover */}
+    <p className="relative z-10 text-xs text-muted-foreground/50 font-mono truncate max-w-52 shrink-0 group-hover:opacity-0 transition-opacity select-none">
+      {source.rss_url}
+    </p>
+
+    {/* Action buttons — revealed on hover */}
+    <div className="relative z-10 flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+      <Button
+        variant="ghost" size="icon-sm"
+        onClick={() => onEdit(source)}
+        aria-label="Edit"
+      >
+        <Pencil className="size-3.5" />
+      </Button>
+      <Button
+        variant="ghost" size="icon-sm"
+        onClick={() => onDelete(source.id)}
+        aria-label="Delete"
+        className="text-destructive hover:text-destructive"
+      >
+        <Trash2 className="size-3.5" />
+      </Button>
+    </div>
+
+  </div>
+);
 
 const Sources = () => {
   const { data: sources = [], isLoading, isError } = useSources();
@@ -135,12 +183,10 @@ const Sources = () => {
     }
   };
 
-  const handleDelete = (id: string) => {
-    deleteSource.mutate(id);
-  };
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+
+      {/* Toolbar */}
       <div className="flex items-center gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -151,62 +197,44 @@ const Sources = () => {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <Button onClick={() => setDialog({ mode: "add" })}>Add source</Button>
+        <Button size="sm" onClick={() => setDialog({ mode: "add" })}>
+          <Plus className="size-4" />
+          Add source
+        </Button>
       </div>
 
+      {/* States */}
       {isLoading && (
-        <div className="text-center text-muted-foreground py-12">Loading…</div>
+        <div className="text-center text-muted-foreground py-16">Loading…</div>
       )}
-
       {isError && (
-        <div className="text-center text-destructive py-12">Failed to load sources.</div>
+        <div className="text-center text-destructive py-16">Failed to load sources.</div>
       )}
-
       {!isLoading && !isError && filtered.length === 0 && (
-        <div className="text-center text-muted-foreground py-12">
+        <div className="text-center text-muted-foreground py-16">
           {search ? "No sources match your search." : "No sources yet."}
         </div>
       )}
 
+      {/* List */}
       {!isLoading && !isError && filtered.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="relative">
           {filtered.map((source) => (
-            <Card key={source.id}>
-              <CardHeader>
-                <CardTitle>{source.title}</CardTitle>
-                <CardDescription>
-                  {source.enabled ? "Enabled" : "Disabled"}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-1">
-                <p className="text-xs text-muted-foreground truncate">
-                  <span className="font-medium text-foreground">Blog</span>{" "}
-                  {source.blog_url}
-                </p>
-                <p className="text-xs text-muted-foreground truncate">
-                  <span className="font-medium text-foreground">RSS</span>{" "}
-                  {source.rss_url}
-                </p>
-              </CardContent>
-              <CardFooter className="gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setDialog({ mode: "edit", source })}
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => handleDelete(source.id)}
-                >
-                  Delete
-                </Button>
-              </CardFooter>
-            </Card>
+            <SourceRow
+              key={source.id}
+              source={source}
+              onEdit={(s) => setDialog({ mode: "edit", source: s })}
+              onDelete={(id) => deleteSource.mutate(id)}
+            />
           ))}
         </div>
+      )}
+
+      {/* Footer count */}
+      {!isLoading && !isError && sources.length > 0 && (
+        <p className="text-xs text-muted-foreground text-right pb-2">
+          {filtered.length} of {sources.length} sources
+        </p>
       )}
 
       <Dialog
@@ -221,6 +249,7 @@ const Sources = () => {
           />
         )}
       </Dialog>
+
     </div>
   );
 };

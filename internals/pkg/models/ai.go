@@ -39,3 +39,10 @@ type AIModelDTO struct {
 	PrefixRequest string `json:"prefix_request"`
 	Enabled       bool   `json:"enabled"`
 }
+
+type AIUpdateDTO struct {
+	Name          string `json:"name"`
+	DisplayName   string `json:"display_name"`
+	PrefixRequest string `json:"prefix_request"`
+	Enabled       *bool  `json:"enabled"`
+}
