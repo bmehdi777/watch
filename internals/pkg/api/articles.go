@@ -203,7 +203,7 @@ func (a *ArticleHandler) generateTldr(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		background := context.Background()
-		tldr, err := ai.GenerateTLDR(background, currentAiModel.Name, currentAiModel.PrefixRequest, article.Description)
+		tldr, err := ai.GenerateTLDR(background, currentAiModel.Name, currentAiModel.PrefixRequest, article.Content)
 		if err != nil {
 			log.Println("An error occured while generating TLDR : ", err)
 			models.LogError(a.DB, "An error occured while generating TLDR : "+err.Error())

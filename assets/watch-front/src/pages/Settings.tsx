@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAIModels, useUpdateAIModel } from "@/hooks/ai.hook";
 import type { AIModel } from "@/services/ai.service";
+import { triggerCrawl } from "@/services/crawler.service";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -129,6 +131,33 @@ const TldrSection = ({ models }: { models: AIModel[] }) => {
   );
 };
 
+const CrawlerSection = () => {
+  const { mutate: crawl, isPending } = useMutation({
+    mutationFn: triggerCrawl,
+    onSuccess: () => toast("Crawl started."),
+    onError: () => toast("Failed to start crawl."),
+  });
+
+  return (
+    <section>
+      <div className="pb-4 border-b border-border">
+        <h2 className="text-sm font-semibold text-foreground">Crawler</h2>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Manually trigger a crawl of all enabled sources.
+        </p>
+      </div>
+      <SettingRow
+        label="Force crawl"
+        description="Fetch new articles from all enabled RSS sources immediately."
+      >
+        <Button size="sm" variant="outline" onClick={() => crawl()} disabled={isPending}>
+          {isPending ? "Starting…" : "Run now"}
+        </Button>
+      </SettingRow>
+    </section>
+  );
+};
+
 const Settings = () => {
   const { data: models = [], isLoading, isError } = useAIModels();
 
@@ -141,6 +170,7 @@ const Settings = () => {
         <div className="text-center text-destructive py-16">Failed to load settings.</div>
       )}
       {!isLoading && !isError && <TldrSection models={models} />}
+      <CrawlerSection />
     </div>
   );
 };
